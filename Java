@@ -1,0 +1,93 @@
+import java.awt.*;
+import java.awt.event.*;
+
+public class FlyingBirdGame extends Frame {
+    private int birdX, birdY;
+    private int obstacleX, obstacleY;
+    private boolean gameOver;
+
+    public FlyingBirdGame() {
+        setSize(500, 500);
+        setTitle("Flying Bird Game");
+        setVisible(true);
+
+        birdX = 100; // initial position of the bird
+        birdY = getHeight() / 2;
+        obstacleX = getWidth(); // initial position of the obstacle
+        obstacleY = getHeight() / 2;
+        gameOver = false;
+
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent we) {
+                System.exit(0);
+            }
+        });
+
+        addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent ke) {
+                if (ke.getKeyCode() == KeyEvent.VK_SPACE) {
+                    jump();
+                }
+            }
+        });
+
+        Thread gameThread = new Thread(() -> {
+            while (!gameOver) {
+                moveObstacle();
+                checkCollision();
+                repaint();
+
+                try {
+                    Thread.sleep(10); // adjust the speed of the game here
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        
+        gameThread.start();
+    }
+
+    public void paint(Graphics g) {
+        g.setColor(Color.WHITE);
+        g.fillRect(0, 0, getWidth(), getHeight());
+
+        g.setColor(Color.GREEN);
+        g.fillRect(birdX, birdY, 30, 20); // draw the bird
+
+        g.setColor(Color.RED);
+        g.fillRect(obstacleX, obstacleY - 100, 50, 100); // draw the obstacle
+
+       if (gameOver) {
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Arial", Font.BOLD, 30));
+            g.drawString("Game Over", getWidth() / 2 - 100, getHeight() / 2);
+        }
+    }
+
+    public void jump() {
+        birdY -= 50; // adjust the jump height here
+    }
+
+    public void moveObstacle() {
+        obstacleX -= 5; // adjust the obstacle speed here
+
+        if (obstacleX < -50) {
+            obstacleX = getWidth();
+            obstacleY = (int) (Math.random() * (getHeight() - 200)) + 100;
+        }
+    }
+
+    public void checkCollision() {
+        Rectangle birdRect = new Rectangle(birdX, birdY, 30, 20);
+        Rectangle obstacleRect = new Rectangle(obstacleX, obstacleY - 100, 50, 100);
+
+        if (birdRect.intersects(obstacleRect)) {
+            gameOver = true;
+        }
+    }
+
+    public static void main(String[] args) {
+        new FlyingBirdGame();
+    }
+}
